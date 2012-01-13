@@ -6,6 +6,7 @@
 		<script src="jquery.min.js"></script>
 		<script type="text/javascript" src="jquery.jsonp-2.1.4.min.js"></script>
 		<script type="text/javascript" src="jquery.blockUI.js"></script>
+		<link href="dashboard.css" media="screen" rel="stylesheet" type="text/css" />
 		<script>
 			//the ci address()
 			var ci_url = "http://ci.jruby.org/view/Ruboto";
@@ -14,81 +15,6 @@
 			jobs_to_be_filtered = [];
 			var jobs_to_be_excluded = ["some-job"];
 		</script>
-		<style>
-       body {
-         padding: 10px;
-         margin: 20px;
-         font: bold 3.1em Helvetica, Arial, sans-serif;
-         background-color: #FFF;
-       }
-
-       section, header, footer, aside, nav, article, figure {
-         display: block;
-       }
-
-       article {
-           color: #FFF;
-					background-color: gray;
-           float: left;
-					padding: 40px;
-           margin: 20px;
-           -moz-box-shadow: 5px 5px 5px #333333;
-           -webkit-box-shadow: 5px 5px 11px #333333;
-           -o-box-shadow: 5px 5px 11px #333333;
-           -ms-box-shadow: 5px 5px 11px #333333;
-           box-shadow: 5px 5px 11px #333333;
-           border-radius: 15px;
-					font-size: 2em;
-       }
-				
-		.disabled, .aborted{
-			
-		}
-			
-    .blue {
-        background:#749a02;
-        -webkit-animation: greenPulse 4s infinite;
-    }
-
-    .blue_anime, .red_anime, .yellow_anime, .aborted_anime {
-        background: #3861b6;
-    }
-    .yellow {
-    	color: black;
-    	background: yellow;
-    }
-    .red{
-        background: #a01208;
-    }
-	.time{
-		font-size:1.5em;
-		background: none;
-		color: black;
-		box-shadow: none;
-	}
-
-	.job_disabled_or_aborted {
-		-webkit-transform: rotate(20deg);
-		-moz-transform: rotate(20deg);
-		position: absolute;
-		color: DarkRed;
-		border: 10px dashed black;
-		margin: 0;
-		padding: 10px;
-		font-size: 2.5em;
-	}
-	.workon{
-		opacity:.8;
-	}
-	#sound{
-	  margin: auto;
-	  position: absolute;
-	  top: 0;
-	  right: 0;
-	  bottom: 0;
-	  left: 0;
-	}
-        </style>
   </head>
 <body>
    <audio name="sound" id="sound" src="http://translate.google.com/translate_tts?q=Hello&tl=en"></audio>
