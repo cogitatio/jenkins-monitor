@@ -1,7 +1,7 @@
 Jenkins Monitor
 =============
 
-A project aims at helping you show status of build in blue(building), red(failure), green(success) box on jenkins.
+A project aims at helping you show status of build in blue(building), red(failure), green(success) box on jenkins. It willl also show additional information about unstable buuilds in a row.
 By using jquery jsonp support and jenkins built-in jsonp reponse support, implementing this is just a piece of cake.
 
 Why
@@ -15,7 +15,7 @@ a little bit and take a look at the builds on screen(it could be in big TV),whet
 How to Use
 -----------
 
-    git clone git://github.com/tuo/jenkins-monitor.git
+    git clone git://github.com/cogitatio/jenkins-monitor.git
 
 
   Then open dashboard.html to change your jenkins ci address and jobs name you want to show on dashboard like following:
@@ -32,4 +32,4 @@ How to Use
 Contribute
 ------------
 This project is still working in progress.
-Suggestions? Email to: clarkhtse@gmail.com
+Suggestions? Email to: fk@cogitatio.de
