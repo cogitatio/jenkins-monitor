@@ -1,5 +1,14 @@
+/*
+ * Configuration
+ */
+
+//the ci address()
+var ci_url = "http://ci.jruby.org/view/Ruboto";
+var jobs_to_be_filtered = []; // leave empty, for all jobs
+var jobs_to_be_excluded = ["some-job"];
 var dashboardLastUpdatedTime = new Date(); 
-//object literal
+var updateInterval = 4000; //updating every x milliseconds 
+
 var jenkinsDashboard = {
     addTimestampToBuild : function(elements){
         elements.each(function() {
@@ -33,7 +42,8 @@ var jenkinsDashboard = {
     }
 }
 
-$(document).ready(function(){	
+$(document).ready(function(){
+    
     ci_url = ci_url + "/api/json";
     var counter = 0;
     var auto_refresh = setInterval(function(){
@@ -50,7 +60,6 @@ $(document).ready(function(){
             },
             success: function(data, status){
                 $.unblockUI();
-                lastData=soundForCI(data,lastData);
                 jenkinsDashboard.updateBuildStatus(data);
             },
             error: function(XHR, textStatus, errorThrown){
@@ -59,5 +68,5 @@ $(document).ready(function(){
                 }
             }
         });
-    }, 4000);
+    }, updateInterval);
 })
