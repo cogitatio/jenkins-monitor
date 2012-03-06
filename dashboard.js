@@ -3,36 +3,27 @@
  */
 
 //the ci address()
-config = {
-    jenkinsViewUrl: "http://ci.jruby.org/view/Ruboto",
-    showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
-    hideJobs: [], // jobs to be excluded
-    updateInterval: 4000 // in milliseconds
-    el: body // the element where the dashboar shall be rendered
-}
 
-
-//var ci_url = "http://ci.jruby.org/view/Ruboto";
-//var jobs_to_be_filtered = []; // leave empty, for all jobs
-//var jobs_to_be_excluded = ["some-job"];
-var dashboardLastUpdatedTime = new Date(); 
-//var updateInterval = 4000; //updating every x milliseconds 
+ 
 
 jenkinsDashboard = function (options) {
-    var buildInfo;
+    var buildInfo = {};
     var defaults = {
         showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
         hideJobs: [], // jobs to be excluded
-        updateInterval: 4000 // in milliseconds
-        el: body
-    }
+        updateInterval: 4000, // in milliseconds
+        el: document.body
+    };
+    var options = $.extend({}, defaults, options);
+    var init = false;
+    var el = $(options.el);
     
     var dashboard = {
+        testWidth: {},
+        progress: {},
         run: function () {
-            base = this;
             this.runStandardInfoCycle();
             this.runProcessorInfoCycle();
-            console.log(base);
         },
         addTimestampToBuild : function(elements){
             elements.each(function() {
@@ -41,7 +32,7 @@ jenkinsDashboard = function (options) {
                 var x = parseInt($(this).offset().left + $(this).width() / 2);
                 var id = x + "-" + y;
                 var html = '<div class="job_disabled_or_aborted" id="' + id + '">' + worker + '</div>';
-                $("#content").append(html);
+                el.append(html);
                 var new_element = $("#" + id);
                 new_element.css("top", parseInt(y - new_element.height() / 2)).css("left", parseInt(x - new_element.width() / 2));
                 new_element.addClass('rotate');
@@ -49,16 +40,32 @@ jenkinsDashboard = function (options) {
             });
         },
         composeHtmlFragement: function(jobs){
-            var fragment = document.createDocumentFragment();
             var fragment = "<section>";
             $.each(jobs, function(){
-                if((jobs_to_be_filtered.length ==0 || $.inArray(this.name, jobs_to_be_filtered) != -1) && ($.inArray(this.name, jobs_to_be_excluded) == -1)){
-                    fragment += ("<article class=" + this.color + "><head>" + this.name + "</head></article>");
+                if((options.showOnlyJobs.length ==0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
+                    style="";
+                    if (dashboard.progress[this.name]) {          
+                        style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
+                    };
+                    id = this.name.replace(/ /g,'');
+                    if (dashboard.testWidth[id]) {
+                        style += "width: " + dashboard.testWidth[id] + "px;";
+                    }
+                    failedDots = '';
+                    if (buildInfo[this.name] && buildInfo[this.name].previouslyFailedTests > 0) {
+                        var dots = '';                  
+                        for (var i = 0; i < buildInfo[this.name].previouslyFailedTests; i++) {
+                            dots += '<div class="dot"></div>';
+                        }
+                        failedDots = "<div class=\"failedDots\">" + dots +  "</div>";
+                    }
+                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots +  "</article>");
                 }
             });
             dashboardLastUpdatedTime = new Date();
-            fragment +="<article class='time'>" + dashboardLastUpdatedTime.toString('dd, MMMM ,yyyy')  + "</article></section>";
-            $("#content").html(fragment);
+            fragment +="<div class='time'>" + (new Date()).toString('dd, MMMM ,yyyy')  + "</div></section>";
+            el.html(fragment);
+            this.initSizes();
         },
         updateBuildStatus : function(data) {
             dashboard.composeHtmlFragement(data.jobs);
@@ -68,72 +75,90 @@ jenkinsDashboard = function (options) {
         runStandardInfoCycle: function() {
             var counter = 0;
             counter++;
-            $.jsonp({
-                url: ci_url + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result]]",
-                dataType: "jsonp",
-                // callbackParameter: "jsonp",
-                timeout: 10000,
-                beforeSend: function(xhr) {
-                    if(counter == 1){
-                        $.blockUI({ message: '<h1 id="loading"><img src="busy.gif" />loading.....</h1>' });
-                    };
-                },
-                success: function(data, status){
-                    $.unblockUI();
-                    //lastData=soundForCI(data,lastData);
-                    $.each(data.jobs, function() {
-                        name = this.name.split(' #', 1)[0];
-                        buildInfo[name].number = this.lastBuild.number;
-                        buildInfo[name].result = this.lastBuild.result;
-                        buildInfo[name].previouslyFailedTests = this.lastBuild.number - this.lastStableBuild.number - 1;
-                    });
-                    dashboard.updateBuildStatus(data);
-                },
-                error: function(XHR, textStatus, errorThrown){
-                    if($("#error_loading").length <= 0){
-                        $.blockUI({message: '<h1 id="error_loading"> Ooooops, check out your network etc. Retrying........</h1>'});
+            setInterval(function(){
+                $.jsonp({
+                    url: options.jenkinsViewUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result]]",
+                    dataType: "jsonp",
+                    // callbackParameter: "jsonp",
+                    timeout: 10000,
+                    success: function(data, status){
+                        $.unblockUI();
+                        $.each(data.jobs, function() {
+                            name = this.name.split(' #', 1)[0];
+                            if (!buildInfo[name]) {buildInfo[name] = {};}
+                            buildInfo[name].number = this.lastBuild.number;
+                            buildInfo[name].result = this.lastBuild.result;
+                            buildInfo[name].previouslyFailedTests = this.lastBuild.number - this.lastStableBuild.number - 1;
+                        });
+                        dashboard.updateBuildStatus(data);
+                    },
+                    error: function(XHR, textStatus, errorThrown){
                     }
-                }
-            });
+                });
+            }, options.updateInterval);
         },
         
         runProcessorInfoCycle: function () {
-            console.log(base);
-        }
-    };
-    return dashboard;
-};
+            setInterval(function(){
+                $.jsonp({
+                    url: options.jenkinsUrl + "/computer/api/json?format=json&jsonp=?&depth=2",
+                    dataType: "jsonp",
+                    timeout: 10000,
+                    success: function(data, status){
+                        dashboard.progress = {};
+                        if (!data.idle) {
+                            $.each(data.computer[0].executors, function() {
+                                if (!this.idle) {
+                                    name = this.currentExecutable.fullDisplayName.split(' #', 1)[0];
+                                    dashboard.progress[name] = this.progress;
+                                }
+                            });
+                        }
+                    },
+                    error: function(XHR, textStatus, errorThrown){
+                        if($("#error_loading").length <= 0){
+                            $.blockUI({message: '<h1 id="error_loading"> Ooooops, check out your network etc. Retrying........</h1>'}); 
+                        }
+                    }
+                });
+            }, options.updateInterval);
+        },
 
+        initSizes: function () {
+            if (init) return;
+            if ($("html").height() > $(window).height()) { 
+                el.css('font-size', parseInt($('body').css('font-size'))-1); 
+                setTimeout(dashboard.initSizes, 15);
+            } else {
+                init = true;
+                dashboard.updateWidth();
+            }
+        },
 
-
-$(document).ready(function(){
-    
-    db = new jenkinsDashboard(options);
-
-    
-    //ci_url = ci_url + "/api/json";
-    var counter = 0;
-    var auto_refresh = setInterval(function(){
-        counter++;
-        $.jsonp({
-            url: ci_url + "/api/json?format=json&jsonp=?",
-            dataType: "jsonp",
-            // callbackParameter: "jsonp",
-            timeout: 10000,
-            beforeSend: function(xhr) {
-                if(counter == 1){
-                    $.blockUI({ message: '<h1 id="loading"><img src="busy.gif" />loading.....</h1>' });
-                };
-            },
-            success: function(data, status){
-                $.unblockUI();
-                jenkinsDashboard.updateBuildStatus(data);
-            },
-            error: function(XHR, textStatus, errorThrown){
-                if($("#error_loading").length <= 0){
-                    $.blockUI({message: '<h1 id="error_loading"> Ooooops, check out your network etc. Retrying........</h1>'});	
+        updateWidth: function () {
+            dashboard.testWidth = dashboard.testWidth || {};
+            var viewportWidth = $('section').width();
+            var tests = $('section article');
+            var rowWidth = 0;
+            var currentTest = 0;
+            var rowItems = []
+            for (currentTest = 0; currentTest < tests.length; currentTest++) {
+                if ((rowWidth + tests.eq(currentTest).outerWidth(true)) < viewportWidth) {
+                    rowItems.push(tests.eq(currentTest));
+                    rowWidth = rowWidth + tests.eq(currentTest).outerWidth(true);
+                } else {
+                    leftSpace = viewportWidth - rowWidth;
+                    space = Math.floor(leftSpace / rowItems.length);
+                    for (var x=0; x<rowItems.length; x++) {
+                        dashboard.testWidth[rowItems[x].attr('id')] = rowItems[x].width() + space;
+                    }
+                    rowItems = [];
+                    rowItems.push(tests.eq(currentTest));
+                    rowWidth=tests.eq(currentTest).outerWidth(true);
                 }
             }
-        });
-    }, updateInterval);
-})
+        }
+    };
+    dashboard.run();
+    return dashboard;
+};

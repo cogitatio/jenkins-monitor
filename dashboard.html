@@ -8,6 +8,20 @@
         <script type="text/javascript" src="jquery.blockUI.js"></script>
         <script type="text/javascript" src="dashboard.js"></script>
         <link href="dashboard.css" media="screen" rel="stylesheet" type="text/css" />
+        <script>
+        config = {
+            jenkinsUrl: "http://ci.qa.local:8080",
+            view: "/view/All",
+            showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
+            hideJobs: [], // jobs to be excluded
+            updateInterval: 4000, // in milliseconds
+            el: 'body' // the element where the dashboar shall be rendered
+        }
+
+        $(document).ready(function(){
+            db = new jenkinsDashboard(config);
+        });
+        </script>
     </head>
     <body>
         <audio name="sound" id="sound" src="http://translate.google.com/translate_tts?q=Hello&tl=en"></audio>

@@ -1,6 +1,6 @@
 body {
-    padding: 10px;
-    margin: 20px;
+    padding: 0.5em;
+    margin: 0;
     font: bold 3.1em Helvetica, Arial, sans-serif;
     background-color: #FFF;
     }
@@ -8,13 +8,14 @@ body {
 section, header, footer, aside, nav, article, figure {
     display: block;
     }
-
+div.time { clear: both; }
 article {
     color: #FFF;
     background-color: gray;
     float: left;
-    padding: 40px;
-    margin: 20px;
+    padding: 0.5em;
+    padding-right: 1em;
+    margin: 0.2em;
     -moz-box-shadow: 5px 5px 5px #333333;
     -webkit-box-shadow: 5px 5px 11px #333333;
     -o-box-shadow: 5px 5px 11px #333333;
@@ -22,6 +23,8 @@ article {
     box-shadow: 5px 5px 11px #333333;
     border-radius: 15px;
     font-size: 2em;
+    text-align: center;
+    position: relative;
     }
 
 .disabled, .aborted{
@@ -73,4 +76,27 @@ article {
     right: 0;
     bottom: 0;
     left: 0;
+    }
+
+.failedDots { 
+    position: absolute; 
+    width: 100%; 
+    bottom: 0px; 
+    left: 0px; 
+    padding: 0.2em;
+    }
+
+.dot { 
+    width: 0.3em;
+    height: 0.3em;
+    background: #990000;
+    border-radius: 0.3em;
+    float: left;
+    margin-right: 0.1em;
+    margin-top: 0.05em;
+    -moz-box-shadow: 2px 2px 2px #333333;
+    -webkit-box-shadow: 2px 2px 2px #333333;
+    -o-box-shadow: 2px 2px 2px #333333;
+    -ms-box-shadow: 2px 2px 2px #333333;
+    box-shadow: 2px 2px 2px #333333;
     }
