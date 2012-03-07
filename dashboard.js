@@ -77,7 +77,7 @@ jenkinsDashboard = function (options) {
             counter++;
             setInterval(function(){
                 $.jsonp({
-                    url: options.jenkinsViewUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result]]",
+                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result]]",
                     dataType: "jsonp",
                     // callbackParameter: "jsonp",
                     timeout: 10000,
