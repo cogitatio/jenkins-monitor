@@ -40,7 +40,7 @@ article {
 
 .yellow {
     color: black;
-    background: yellow;
+    background: #dddd00;
     }
 
 .red{
@@ -99,4 +99,25 @@ article {
     -o-box-shadow: 2px 2px 2px #333333;
     -ms-box-shadow: 2px 2px 2px #333333;
     box-shadow: 2px 2px 2px #333333;
+    }
+
+.warning {
+    background-image: url(css/img/warning.png), -webkit-linear-gradient(top, #990000 0%, #660000 20%, transparent 30%), -webkit-linear-gradient(right, #990000 0%, #330000 2em, transparent 2.5em);; 
+    background-size: 2em 2em, auto, auto;
+    background-repeat: no-repeat; 
+    background-position: center right;
+    border-radius: 0.3em;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    }
+
+.warning > div {
+    font-size: 0.4em;
+    line-height: 1em;
+    color: white;
+    text-align: left;
+    padding-left: 1em;
     }

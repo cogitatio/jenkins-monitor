@@ -41,9 +41,11 @@ jenkinsDashboard = function (options) {
         },
         composeHtmlFragement: function(jobs){
             var fragment = "<section>";
+            var warning = "";
             $.each(jobs, function(){
                 if((options.showOnlyJobs.length ==0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
                     style="";
+                    warning = "";
                     if (dashboard.progress[this.name]) {          
                         style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
                     };
@@ -58,8 +60,11 @@ jenkinsDashboard = function (options) {
                             dots += '<div class="dot"></div>';
                         }
                         failedDots = "<div class=\"failedDots\">" + dots +  "</div>";
+                        if (buildInfo[this.name].previouslyFailedTests > 10) {
+                            warning = '<div class="warning"><div>more than 10 failed tests in a row</div></div>';
+                        }
                     }
-                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots +  "</article>");
+                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + "</article>");
                 }
             });
             dashboardLastUpdatedTime = new Date();
