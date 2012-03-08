@@ -13,9 +13,9 @@
             jenkinsUrl: "http://ci.qa.local:8080",
             view: "/view/All",
             showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
-            hideJobs: [], // jobs to be excluded
+            hideJobs: ['rails-master-activerecord-jruby-jdbcsqlite3'], // jobs to be excluded
             updateInterval: 4000, // in milliseconds
-            el: 'body' // the element where the dashboar shall be rendered
+            //el: '#test' // the element where the dashboar shall be rendered
         }
 
         $(document).ready(function(){
@@ -30,5 +30,6 @@
             <cite>kanban for radiate ci status</cite>
             <h5>Better using Safari or Google Chrome</h5>
         </div>
+        <div id="test" style="width: 600px; height: 600px; background: #cecece;"></div>
     </body>
 </html>
