@@ -13,7 +13,7 @@
             jenkinsUrl: "http://ci.qa.local:8080",
             view: "/view/All",
             showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
-            hideJobs: [], // jobs to be excluded
+            hideJobs: ['Test - System Tests','Test - Regression Tests'], // jobs to be excluded
             updateInterval: 4000, // in milliseconds
             el: 'body' // the element where the dashboar shall be rendered
         }

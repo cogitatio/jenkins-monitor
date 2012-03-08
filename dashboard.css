@@ -104,9 +104,9 @@ article {
 
 .warning {
     background-image: url(css/img/warning.png), -webkit-linear-gradient(top, #990000 0%, #660000 20%, transparent 30%), -webkit-linear-gradient(right, #990000 0%, #330000 2em, transparent 2.5em);; 
-    background-size: 2em 2em, auto, auto;
+    background-size: 1.7em 1.7em, auto, auto;
     background-repeat: no-repeat; 
-    background-position: center right;
+    background-position: right center;
     border-radius: 0.3em;
     position: absolute;
     right: 0px;

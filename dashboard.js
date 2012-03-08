@@ -44,7 +44,7 @@ jenkinsDashboard = function (options) {
             var fragment = "<section>";
             var warning = "";
             $.each(jobs, function(){
-                if((options.showOnlyJobs.length ==0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
+                if((options.showOnlyJobs.length == 0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
                     style="";
                     warning = "";
                     if (dashboard.progress[this.name]) {          
