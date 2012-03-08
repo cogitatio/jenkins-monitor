@@ -62,10 +62,13 @@ jenkinsDashboard = function (options) {
                             warnings[warnings.length] = buildInfo[this.name].previouslyFailedTests + ' failed tests in a row';
                         }
                     }
+                    if (buildInfo[this.name].age > 3600) {
+                        warnings[warnings.length] = 'no build for ' + Math.round(buildInfo[this.name].age / 3600) + ' hours';
+                    }
                     if (warnings.length > 0) {
                         warning_info = '<div class="warning_info"><div>' + warnings.join(', ') + '</div></div>';
                     }
-                    if (buildInfo[this.name].previouslyFailedTests > 20) {
+                    if (buildInfo[this.name].previouslyFailedTests > 20 || buildInfo[this.name].age > (3*3600)) {
                         warning = '<div class="warning"></div>';
                     }
                     if (buildInfo[this.name].testResults) {
@@ -91,7 +94,7 @@ jenkinsDashboard = function (options) {
             counter++;
             setInterval(function(){
                 $.jsonp({
-                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
+                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result,timestamp],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
                     dataType: "jsonp",
                     // callbackParameter: "jsonp",
                     timeout: 10000,
@@ -102,6 +105,8 @@ jenkinsDashboard = function (options) {
                             if (!buildInfo[name]) {buildInfo[name] = {};}
                             buildInfo[name].number = this.lastBuild.number;
                             buildInfo[name].result = this.lastBuild.result;
+                            buildInfo[name].age = Math.floor((new Date() - new Date(this.lastBuild.timestamp)) / 1000);
+                            console.log(new Date(this.lastBuild.timestamp), (new Date() - new Date(this.lastBuild.timestamp)) / (1000*60*60), buildInfo[name].age);
                             buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
                             for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
                                 if (this.lastCompletedBuild.actions[i].failCount) {
