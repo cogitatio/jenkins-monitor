@@ -21,10 +21,11 @@ article {
     -o-box-shadow: 5px 5px 11px #333333;
     -ms-box-shadow: 5px 5px 11px #333333;
     box-shadow: 5px 5px 11px #333333;
-    border-radius: 15px;
+    border-radius: 0.3em;
     font-size: 2em;
     text-align: center;
     position: relative;
+    white-space: nowrap;
     }
 
 .disabled, .aborted{
@@ -121,3 +122,14 @@ article {
     text-align: left;
     padding-left: 1em;
     }
+div.info {
+    font-size: 0.4em;
+    color: black;
+    position: absolute;
+    bottom: 0px;
+    }
+    
+.container {
+	overflow: hidden;
+	
+}

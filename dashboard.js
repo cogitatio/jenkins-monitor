@@ -17,6 +17,7 @@ jenkinsDashboard = function (options) {
     var options = $.extend({}, defaults, options);
     var init = false;
     var el = $(options.el);
+    var innerEl;
     
     var dashboard = {
         testWidth: {},
@@ -56,7 +57,7 @@ jenkinsDashboard = function (options) {
                     failedDots = '';
                     if (buildInfo[this.name] && buildInfo[this.name].previouslyFailedTests > 0) {
                         var dots = '';                  
-                        for (var i = 0; i < buildInfo[this.name].previouslyFailedTests; i++) {
+                        for (var i = 0; i < Math.min(buildInfo[this.name].previouslyFailedTests,100); i++) {
                             dots += '<div class="dot"></div>';
                         }
                         failedDots = "<div class=\"failedDots\">" + dots +  "</div>";
@@ -64,12 +65,18 @@ jenkinsDashboard = function (options) {
                             warning = '<div class="warning"><div>more than 10 failed tests in a row</div></div>';
                         }
                     }
-                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + "</article>");
+                    results = '';
+                    if (buildInfo[this.name].testResults) {
+                        results = '<div class="info">' + buildInfo[this.name].testResults.failed + '/' + buildInfo[this.name].testResults.total + '</div>';
+                    }
+                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + results +"</article>");
                 }
             });
             dashboardLastUpdatedTime = new Date();
             fragment +="<div class='time'>" + (new Date()).toString('dd, MMMM ,yyyy')  + "</div></section>";
             el.html(fragment);
+            el.addClass('container');
+            innerEl = el.find('section').first();
             this.initSizes();
         },
         updateBuildStatus : function(data) {
@@ -82,7 +89,7 @@ jenkinsDashboard = function (options) {
             counter++;
             setInterval(function(){
                 $.jsonp({
-                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result]]",
+                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
                     dataType: "jsonp",
                     // callbackParameter: "jsonp",
                     timeout: 10000,
@@ -93,7 +100,14 @@ jenkinsDashboard = function (options) {
                             if (!buildInfo[name]) {buildInfo[name] = {};}
                             buildInfo[name].number = this.lastBuild.number;
                             buildInfo[name].result = this.lastBuild.result;
-                            buildInfo[name].previouslyFailedTests = this.lastBuild.number - this.lastStableBuild.number - 1;
+                            buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
+                            if (this.lastCompletedBuild.actions[3] && this.lastCompletedBuild.actions[3].failCount) {
+                                buildInfo[name].testResults = {
+                                    total: this.lastCompletedBuild.actions[3].totalCount,
+                                    failed: this.lastCompletedBuild.actions[3].failCount,
+                                    skipped: this.lastCompletedBuild.actions[3].skippedCount
+                                }
+                            }
                         });
                         dashboard.updateBuildStatus(data);
                     },
@@ -131,8 +145,10 @@ jenkinsDashboard = function (options) {
 
         initSizes: function () {
             if (init) return;
-            if ($("html").height() > $(window).height()) { 
-                el.css('font-size', parseInt($('body').css('font-size'))-1); 
+            outerEl = (options.el == document.body) ? $(window) : el;
+            console.log(innerEl.height(), outerEl.height());
+            if (innerEl.height() > outerEl.height()) { 
+                el.css('font-size', parseInt(el.css('font-size'))-1); 
                 setTimeout(dashboard.initSizes, 15);
             } else {
                 init = true;
