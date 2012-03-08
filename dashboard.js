@@ -35,18 +35,17 @@ jenkinsDashboard = function (options) {
                 var html = '<div class="job_disabled_or_aborted" id="' + id + '">' + worker + '</div>';
                 el.append(html);
                 var new_element = $("#" + id);
-                new_element.css("top", parseInt(y - new_element.height() / 2)).css("left", parseInt(x - new_element.width() / 2));
+                new_element.css("top", parseInt(y - new_element.height() / 2 +10)).css("left", parseInt(x - new_element.width() / 2));
                 new_element.addClass('rotate');
                 $(this).addClass('workon');
             });
         },
         composeHtmlFragement: function(jobs){
             var fragment = "<section>";
-            var warning = "";
+            var warning, warning_info, warnings, failedDots, results, dots;
             $.each(jobs, function(){
                 if((options.showOnlyJobs.length == 0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
-                    style="";
-                    warning = "";
+                    style="", warning = "", warning_info = "", warnings = [],failedDots = '',results = '',dots = '';
                     if (dashboard.progress[this.name]) {          
                         style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
                     };
@@ -54,22 +53,25 @@ jenkinsDashboard = function (options) {
                     if (dashboard.testWidth[id]) {
                         style += "width: " + dashboard.testWidth[id] + "px;";
                     }
-                    failedDots = '';
                     if (buildInfo[this.name] && buildInfo[this.name].previouslyFailedTests > 0) {
-                        var dots = '';                  
                         for (var i = 0; i < Math.min(buildInfo[this.name].previouslyFailedTests,100); i++) {
                             dots += '<div class="dot"></div>';
                         }
                         failedDots = "<div class=\"failedDots\">" + dots +  "</div>";
                         if (buildInfo[this.name].previouslyFailedTests > 10) {
-                            warning = '<div class="warning"><div>more than 10 failed tests in a row</div></div>';
+                            warnings[warnings.length] = buildInfo[this.name].previouslyFailedTests + ' failed tests in a row';
                         }
                     }
-                    results = '';
+                    if (warnings.length > 0) {
+                        warning_info = '<div class="warning_info"><div>' + warnings.join(', ') + '</div></div>';
+                    }
+                    if (buildInfo[this.name].previouslyFailedTests > 20) {
+                        warning = '<div class="warning"></div>';
+                    }
                     if (buildInfo[this.name].testResults) {
                         results = '<div class="info">' + buildInfo[this.name].testResults.failed + '/' + buildInfo[this.name].testResults.total + '</div>';
                     }
-                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + results +"</article>");
+                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + warning_info + results +"</article>");
                 }
             });
             dashboardLastUpdatedTime = new Date();
@@ -101,11 +103,13 @@ jenkinsDashboard = function (options) {
                             buildInfo[name].number = this.lastBuild.number;
                             buildInfo[name].result = this.lastBuild.result;
                             buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
-                            if (this.lastCompletedBuild.actions[3] && this.lastCompletedBuild.actions[3].failCount) {
-                                buildInfo[name].testResults = {
-                                    total: this.lastCompletedBuild.actions[3].totalCount,
-                                    failed: this.lastCompletedBuild.actions[3].failCount,
-                                    skipped: this.lastCompletedBuild.actions[3].skippedCount
+                            for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
+                                if (this.lastCompletedBuild.actions[i].failCount) {
+                                    buildInfo[name].testResults = {
+                                        total: this.lastCompletedBuild.actions[i].totalCount,
+                                        failed: this.lastCompletedBuild.actions[i].failCount,
+                                        skipped: this.lastCompletedBuild.actions[i].skippedCount
+                                    }
                                 }
                             }
                         });
