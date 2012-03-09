@@ -10,11 +10,17 @@
         <link href="dashboard.css" media="screen" rel="stylesheet" type="text/css" />
         <script>
         config = {
-            jenkinsUrl: "http://ci.jruby.org",
+            jenkinsUrl: "http://ci.qa.local:8080",
             view: "/view/All",
             showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
             hideJobs: ['Test - System Tests','Test - Regression Tests'], // jobs to be excluded
             updateInterval: 4000, // in milliseconds
+            buildOptions: {
+                'Trunk Nightly' : {
+                    'ageWarning' : 3600*24,
+                    'ageError' : 3600 * 24 * 3
+                }
+            },
         }
 
         $(document).ready(function(){

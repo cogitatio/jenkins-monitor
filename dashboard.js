@@ -14,6 +14,10 @@ jenkinsDashboard = function (options) {
         updateInterval: 4000, // in milliseconds
         el: document.body
     };
+    var buildOptionsDefaults = {
+        'ageWarning' : 3600,
+        'ageError' : 3600 * 3
+    };
     var options = $.extend({}, defaults, options);
     var init = false;
     var el = $(options.el);
@@ -42,10 +46,12 @@ jenkinsDashboard = function (options) {
         },
         composeHtmlFragement: function(jobs){
             var fragment = "<section>";
-            var warning, warning_info, warnings, failedDots, results, dots;
+            var warning, warning_info, warnings, failedDots, results, dots, buildOptions;
             $.each(jobs, function(){
                 if((options.showOnlyJobs.length == 0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
                     style="", warning = "", warning_info = "", warnings = [],failedDots = '',results = '',dots = '';
+                    buildOptions = $.extend({}, buildOptionsDefaults, options.buildOptions[this.name]);
+                    console.log(buildOptions);
                     if (dashboard.progress[this.name]) {          
                         style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
                     };
@@ -62,13 +68,13 @@ jenkinsDashboard = function (options) {
                             warnings[warnings.length] = buildInfo[this.name].previouslyFailedTests + ' failed tests in a row';
                         }
                     }
-                    if (buildInfo[this.name].age > 3600) {
+                    if (buildInfo[this.name].age > buildOptions.ageWarning) {
                         warnings[warnings.length] = 'no build for ' + Math.round(buildInfo[this.name].age / 3600) + ' hours';
                     }
                     if (warnings.length > 0) {
                         warning_info = '<div class="warning_info"><div>' + warnings.join(', ') + '</div></div>';
                     }
-                    if (buildInfo[this.name].previouslyFailedTests > 20 || buildInfo[this.name].age > (3*3600)) {
+                    if (buildInfo[this.name].previouslyFailedTests > 20 || buildInfo[this.name].age > buildOptions.ageError) {
                         warning = '<div class="warning"></div>';
                     }
                     if (buildInfo[this.name].testResults) {
@@ -108,6 +114,7 @@ jenkinsDashboard = function (options) {
                             buildInfo[name].age = Math.floor((new Date() - new Date(this.lastBuild.timestamp)) / 1000);
                             console.log(new Date(this.lastBuild.timestamp), (new Date() - new Date(this.lastBuild.timestamp)) / (1000*60*60), buildInfo[name].age);
                             buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
+                            delete buildInfo[name].testResults;
                             for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
                                 if (this.lastCompletedBuild.actions[i].failCount) {
                                     buildInfo[name].testResults = {
