@@ -10,15 +10,21 @@
         <link href="dashboard.css" media="screen" rel="stylesheet" type="text/css" />
         <script>
         config = {
-            jenkinsUrl: "http://ci.qa.local:8080",
+            jenkinsUrl: "http://ci.jruby.org",
             view: "/view/All",
             showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
-            hideJobs: ['Test - System Tests','Test - Regression Tests'], // jobs to be excluded
+            hideJobs: ['ruboto_pads_jruby_master','Test - Regression Tests'], // jobs to be excluded
             updateInterval: 4000, // in milliseconds
             buildOptions: {
+                __default__ : {
+                    ageWarning : 3600*24,
+                    ageError : 3600 * 24 * 30,
+                    buildFailWarning : 50,
+                    buildFailError: 300
+                },
                 'Trunk Nightly' : {
-                    'ageWarning' : 3600*24,
-                    'ageError' : 3600 * 24 * 3
+                    ageWarning : 3600*24,
+                    ageError : 3600 * 24 * 3
                 }
             },
         }

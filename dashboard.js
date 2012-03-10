@@ -50,8 +50,8 @@ jenkinsDashboard = function (options) {
             $.each(jobs, function(){
                 if((options.showOnlyJobs.length == 0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
                     style="", warning = "", warning_info = "", warnings = [],failedDots = '',results = '',dots = '';
-                    buildOptions = $.extend({}, buildOptionsDefaults, options.buildOptions[this.name]);
-                    console.log(buildOptions);
+                    buildOptions = $.extend({}, buildOptionsDefaults, options.buildOptions.__default__, options.buildOptions[this.name]);
+                    //console.log(this);
                     if (dashboard.progress[this.name]) {          
                         style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
                     };
@@ -59,25 +59,25 @@ jenkinsDashboard = function (options) {
                     if (dashboard.testWidth[id]) {
                         style += "width: " + dashboard.testWidth[id] + "px;";
                     }
-                    if (buildInfo[this.name] && buildInfo[this.name].previouslyFailedTests > 0) {
+                    if (this.buildable && buildInfo[this.name] && buildInfo[this.name].previouslyFailedTests > 0) {
                         for (var i = 0; i < Math.min(buildInfo[this.name].previouslyFailedTests,100); i++) {
                             dots += '<div class="dot"></div>';
                         }
                         failedDots = "<div class=\"failedDots\">" + dots +  "</div>";
-                        if (buildInfo[this.name].previouslyFailedTests > 10) {
+                        if (buildInfo[this.name].previouslyFailedTests > buildOptions.buildFailWarning) {
                             warnings[warnings.length] = buildInfo[this.name].previouslyFailedTests + ' failed tests in a row';
                         }
                     }
-                    if (buildInfo[this.name].age > buildOptions.ageWarning) {
+                    if (this.buildable && buildInfo[this.name].age > buildOptions.ageWarning) {
                         warnings[warnings.length] = 'no build for ' + Math.round(buildInfo[this.name].age / 3600) + ' hours';
                     }
-                    if (warnings.length > 0) {
+                    if (this.buildable && warnings.length > 0) {
                         warning_info = '<div class="warning_info"><div>' + warnings.join(', ') + '</div></div>';
                     }
-                    if (buildInfo[this.name].previouslyFailedTests > 20 || buildInfo[this.name].age > buildOptions.ageError) {
+                    if (this.buildable && (buildInfo[this.name].previouslyFailedTests > buildOptions.buildFailError || buildInfo[this.name].age > buildOptions.ageError)) {
                         warning = '<div class="warning"></div>';
                     }
-                    if (buildInfo[this.name].testResults) {
+                    if (this.buildable && buildInfo[this.name].testResults) {
                         results = '<div class="info">' + buildInfo[this.name].testResults.failed + '/' + buildInfo[this.name].testResults.total + '</div>';
                     }
                     fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + warning_info + results +"</article>");
@@ -100,7 +100,7 @@ jenkinsDashboard = function (options) {
             counter++;
             setInterval(function(){
                 $.jsonp({
-                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,lastBuild[number,result,timestamp],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
+                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,buildable,lastBuild[number,result,timestamp],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
                     dataType: "jsonp",
                     // callbackParameter: "jsonp",
                     timeout: 10000,
@@ -112,7 +112,6 @@ jenkinsDashboard = function (options) {
                             buildInfo[name].number = this.lastBuild.number;
                             buildInfo[name].result = this.lastBuild.result;
                             buildInfo[name].age = Math.floor((new Date() - new Date(this.lastBuild.timestamp)) / 1000);
-                            console.log(new Date(this.lastBuild.timestamp), (new Date() - new Date(this.lastBuild.timestamp)) / (1000*60*60), buildInfo[name].age);
                             buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
                             delete buildInfo[name].testResults;
                             for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
@@ -142,11 +141,14 @@ jenkinsDashboard = function (options) {
                     success: function(data, status){
                         dashboard.progress = {};
                         if (!data.idle) {
-                            $.each(data.computer[0].executors, function() {
-                                if (!this.idle) {
-                                    name = this.currentExecutable.fullDisplayName.split(' #', 1)[0];
-                                    dashboard.progress[name] = this.progress;
-                                }
+                            $.each(data.computer, function() {
+                                $.each(this.executors, function() {
+                                    console.log(this);
+                                    if (!this.idle) {
+                                        name = this.currentExecutable.fullDisplayName.split(' #', 1)[0];
+                                        dashboard.progress[name] = this.progress;
+                                    }
+                                });
                             });
                         }
                     },
@@ -162,7 +164,6 @@ jenkinsDashboard = function (options) {
         initSizes: function () {
             if (init) return;
             outerEl = (options.el == document.body) ? $(window) : el;
-            console.log(innerEl.height(), outerEl.height());
             if (innerEl.height() > outerEl.height()) { 
                 el.css('font-size', parseInt(el.css('font-size'))-1); 
                 setTimeout(dashboard.initSizes, 15);
