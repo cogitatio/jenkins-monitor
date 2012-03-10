@@ -21,16 +21,28 @@ jenkinsDashboard = function (options) {
     var options = $.extend({}, defaults, options);
     var init = false;
     var el = $(options.el);
-    var innerEl;
+    var innerEl, outerEl;
     
     var dashboard = {
         testWidth: {},
         progress: {},
+        greenBuild: false,
+        builds: {},
         run: function () {
+            this.initializeElements();
             this.runStandardInfoCycle();
             this.runProcessorInfoCycle();
         },
-        addTimestampToBuild : function(elements){
+        
+        initializeElements: function () {
+            if (options.el == document.body) {
+                el = $('<div></div>').css('overflow','visible').css('width', $('body').width()).css('height', $(window).height() - parseInt($('body').css('padding-top')) - parseInt($('body').css('padding-bottom')));
+                $(document.body).html(el);
+            }
+            outerEl = el;
+        },
+        
+        addTimestampToBuild : function(elements) {
             elements.each(function() {
                 var worker = $(this).attr("class");
                 var y = parseInt($(this).offset().top + $(this).height() / 2);
@@ -46,12 +58,16 @@ jenkinsDashboard = function (options) {
         },
         composeHtmlFragement: function(jobs){
             var fragment = "<section>";
-            var warning, warning_info, warnings, failedDots, results, dots, buildOptions;
+            var warning, warning_info, warnings, failedDots, results, dots, buildOptions, greenBuild;
+            greenBuild = true;
             $.each(jobs, function(){
                 if((options.showOnlyJobs.length == 0 || $.inArray(this.name, options.showOnlyJobs) != -1) && ($.inArray(this.name, options.hideJobs) == -1)){
                     style="", warning = "", warning_info = "", warnings = [],failedDots = '',results = '',dots = '';
                     buildOptions = $.extend({}, buildOptionsDefaults, options.buildOptions.__default__, options.buildOptions[this.name]);
-                    //console.log(this);
+                    if (this.buildable && !(this.lastStableBuild && this.lastBuild && this.lastBuild.number == this.lastStableBuild.number)) {
+                        greenBuild = false;
+                        console.log('failed: ',this.name , this);
+                    }
                     if (dashboard.progress[this.name]) {          
                         style = "background: -webkit-linear-gradient(left, #3861b6 0%,#3861b6 " + dashboard.progress[this.name] + "%,#909CB5 " + (dashboard.progress[this.name] + 1) + "%,#909CB5 100%);";
                     };
@@ -80,15 +96,30 @@ jenkinsDashboard = function (options) {
                     if (this.buildable && buildInfo[this.name].testResults) {
                         results = '<div class="info">' + buildInfo[this.name].testResults.failed + '/' + buildInfo[this.name].testResults.total + '</div>';
                     }
-                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning + warning_info + results +"</article>");
+                    fragment += ("<article id =\"" + id + "\" class=" + this.color + " style=\"" + style + "\"><head>" + this.name + "</head>" + failedDots + warning_info + warning + results +"</article>");
                 }
             });
+            
             dashboardLastUpdatedTime = new Date();
             fragment +="<div class='time'>" + (new Date()).toString('dd, MMMM ,yyyy')  + "</div></section>";
             el.html(fragment);
             el.addClass('container');
             innerEl = el.find('section').first();
             this.initSizes();
+            if (!dashboard.greenBuild && greenBuild) {
+                dashboard.greenBuild = true;
+                console.log('new green build');
+                console.log($('body'));
+                if (options.drogenlied) {
+                    el.after($('<div id="drogenlied"><iframe style="width: 100%; height: 100%;" src="drogenlied.html"></iframe><div><p>Komplett grüner Build!!</p></div></div>'));
+                    setTimeout(function() { $('#drogenlied').slideUp('slow', function() {$('#drogenlied').remove()})}, 45000);
+                }
+            } else if (greenBuild) {
+                console.log('green build');
+            } else {
+                dashboard.greenBuild = false;
+                console.log('red build');
+            }
         },
         updateBuildStatus : function(data) {
             dashboard.composeHtmlFragement(data.jobs);
@@ -100,7 +131,7 @@ jenkinsDashboard = function (options) {
             counter++;
             setInterval(function(){
                 $.jsonp({
-                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,buildable,lastBuild[number,result,timestamp],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
+                    url: options.jenkinsUrl + options.view + "/api/json?format=json&jsonp=?&tree=jobs[name,color,url,buildable,inQueue,lastBuild[number,result,timestamp],lastStableBuild[number,result],lastCompletedBuild[actions[failCount,skipCount,totalCount]]]",
                     dataType: "jsonp",
                     // callbackParameter: "jsonp",
                     timeout: 10000,
@@ -143,7 +174,6 @@ jenkinsDashboard = function (options) {
                         if (!data.idle) {
                             $.each(data.computer, function() {
                                 $.each(this.executors, function() {
-                                    console.log(this);
                                     if (!this.idle) {
                                         name = this.currentExecutable.fullDisplayName.split(' #', 1)[0];
                                         dashboard.progress[name] = this.progress;
@@ -163,7 +193,6 @@ jenkinsDashboard = function (options) {
 
         initSizes: function () {
             if (init) return;
-            outerEl = (options.el == document.body) ? $(window) : el;
             if (innerEl.height() > outerEl.height()) { 
                 el.css('font-size', parseInt(el.css('font-size'))-1); 
                 setTimeout(dashboard.initSizes, 15);

@@ -1,0 +1,38 @@
+<html>
+<head>
+<script src="jquery.min.js"></script>
+<style>
+html, body { height: 100%; width: 100%; padding: 0; margin: 0;}
+body {
+    background-image: url(css/img/1.gif),url(css/img/anibg.gif);
+}
+</style>
+<script>
+
+function fadeOutVolume(audio, callback)
+{
+    var factor  = 0.01,
+        speed   = 50;
+    if (audio.volume > factor)
+    {
+        audio.volume -= factor;
+        setTimeout(function(){
+            console.log($('#lied').get(0).duration, $('#lied').get(0).currentTime)
+            fadeOutVolume(audio, callback);         
+        }, speed);
+    } else {
+        (typeof(callback) !== 'function') || callback();
+    }
+}
+$(document).ready(function () {
+    console.log($('#lied').get(0).duration)
+	setTimeout(function() {fadeOutVolume($('#lied').get(0), function(){
+	    console.log('fade complete');
+	});}, 40000);
+});
+</script>
+</head>
+<body>
+<audio id="lied" src="audio/drogenlied.mp3" style="display:none;" autoplay></audio>
+</body>
+</html>
