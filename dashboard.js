@@ -140,17 +140,21 @@ jenkinsDashboard = function (options) {
                         $.each(data.jobs, function() {
                             name = this.name.split(' #', 1)[0];
                             if (!buildInfo[name]) {buildInfo[name] = {};}
-                            buildInfo[name].number = this.lastBuild.number;
-                            buildInfo[name].result = this.lastBuild.result;
-                            buildInfo[name].age = Math.floor((new Date() - new Date(this.lastBuild.timestamp)) / 1000);
-                            buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
+                            if (this.lastBuild) {
+                                buildInfo[name].number = this.lastBuild.number;
+                                buildInfo[name].result = this.lastBuild.result;
+                                buildInfo[name].age = Math.floor((new Date() - new Date(this.lastBuild.timestamp)) / 1000);
+                                buildInfo[name].previouslyFailedTests = (this.lastBuild.number || 0) - (this.lastStableBuild ? this.lastStableBuild.number : 0) - 1;
+                            }
                             delete buildInfo[name].testResults;
-                            for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
-                                if (this.lastCompletedBuild.actions[i].failCount) {
-                                    buildInfo[name].testResults = {
-                                        total: this.lastCompletedBuild.actions[i].totalCount,
-                                        failed: this.lastCompletedBuild.actions[i].failCount,
-                                        skipped: this.lastCompletedBuild.actions[i].skippedCount
+                            if (this.lastCompletedBuild) {
+                                for (i=0; i < this.lastCompletedBuild.actions.length; i++) {
+                                    if (this.lastCompletedBuild.actions[i].failCount) {
+                                        buildInfo[name].testResults = {
+                                            total: this.lastCompletedBuild.actions[i].totalCount,
+                                            failed: this.lastCompletedBuild.actions[i].failCount,
+                                            skipped: this.lastCompletedBuild.actions[i].skippedCount
+                                        }
                                     }
                                 }
                             }

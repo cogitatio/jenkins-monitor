@@ -12,12 +12,31 @@
         config = {
             jenkinsUrl: "http://ci.jruby.org",
             view: "/view/All",
+            //drogenlied: true,
             showOnlyJobs: [], // jobs to be shown, if [] all jobs of the view are shown
-            hideJobs: ['ruboto_pads_jruby_master','Test - Regression Tests'], // jobs to be excluded
+            hideJobs: ['ruboto_pads_jruby_master','activerecord-jdbc-master','jruby-rack-dist',
+                'jruby-spec-coverage',
+                'jruby-test-all-master',
+                'jruby-test-master',
+                'jruby-test19-master',
+                'rails-3-1-stable',
+                'rails-3-1-stable-activerecord-jruby-jdbcmysql',
+                'rails-3-1-stable-activerecord-jruby-jdbcsqlite3',
+                'rails-master-activerecord-jruby-jdbcsqlite3',
+                'rails-master-railties-jruby',
+                'ruboto_pads',
+                'rails-3-1-stable-railties-jruby',
+                'rails-master-activerecord-jruby-jdbcmysql',
+                'jruby-rack-jruby-master',
+                'jruby-spec-ci-release',
+                'jruby-test-matrix',
+                'rails-master',
+                'ruboto_jruby_master'
+                       ], // jobs to be excluded
             updateInterval: 4000, // in milliseconds
             buildOptions: {
                 __default__ : {
-                    ageWarning : 3600*24,
+                    ageWarning : 3600*100,
                     ageError : 3600 * 24 * 30,
                     buildFailWarning : 50,
                     buildFailError: 300
@@ -35,10 +54,8 @@
         </script>
     </head>
     <body>
-        <audio name="sound" id="sound" src="http://translate.google.com/translate_tts?q=Hello&tl=en"></audio>
-        <div id="content">
+        <div id="content" style="width: 500px; height: 500px;">
             <h2>Jenkins Monitor</h2>
-            <cite>kanban for radiate ci status</cite>
             <h5>Better using Safari or Google Chrome</h5>
         </div>
     </body>
